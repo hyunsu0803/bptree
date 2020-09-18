@@ -113,7 +113,7 @@ public class Main {
     private static void creation(String indexFileName, int d){
         degree = d;
         try {
-            File indexFile = new File(indexFileName);
+            File indexFile = new File("../build/" + indexFileName);
             FileWriter fw = new FileWriter(indexFile);
             fw.write("$ " + degree + "\n");
             fw.flush();
@@ -128,7 +128,7 @@ public class Main {
         readTree(indexFileName);
 
         try {
-            File inputFile = new File("./" + inputFileName);
+            File inputFile = new File("../build/" + inputFileName);
             FileReader fr = new FileReader(inputFile);
             BufferedReader br = new BufferedReader(fr);
 
@@ -328,7 +328,7 @@ public class Main {
 
     private static void readTree(String indexFileName){
         try {
-            File indexFile = new File("./" + indexFileName);
+            File indexFile = new File("../build/" + indexFileName);
             FileReader fr = new FileReader(indexFile);
             BufferedReader br = new BufferedReader(fr);
 
@@ -409,7 +409,7 @@ public class Main {
 
     private static void writeTree(String indexFileName){
         try {
-            File indexFile = new File("./" + indexFileName);
+            File indexFile = new File("../build/" + indexFileName);
             FileWriter fw = new FileWriter(indexFile);
             BufferedWriter bw = new BufferedWriter(fw);
 
