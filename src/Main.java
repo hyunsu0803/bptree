@@ -90,6 +90,8 @@ public class Main {
                     break;
                 }
                 deletion(args[1], args[2]);
+                break;
+
             case "-s":
                 if(args.length < 3){
                     System.out.println("Wrong argument!");
@@ -97,6 +99,7 @@ public class Main {
                 }
                 singleKeySearch(args[1], Integer.parseInt(args[2]));
                 break;
+
             case "-r":
                 if(args.length < 4){
                     System.out.println("Wrong argument!");
@@ -104,6 +107,7 @@ public class Main {
                 }
                 rangedSearch(args[1], Integer.parseInt(args[2]), Integer.parseInt(args[3]));
                 break;
+
             default:
                 System.out.println("Command error! Check Command!");
         }
@@ -143,6 +147,9 @@ public class Main {
         }
 
         System.out.println("insertion done!");
+
+        printAllKeys();
+        System.out.println("printAllKeys done!");
 
         writeTree(indexFileName);
     }
@@ -571,7 +578,7 @@ public class Main {
         readTree(indexFileName);
 
         try {
-            File deleteFile = new File("./" + deleteFileName);
+            File deleteFile = new File("../build/" + deleteFileName);
             FileReader fr = new FileReader(deleteFile);
             BufferedReader br = new BufferedReader(fr);
 
@@ -630,19 +637,16 @@ public class Main {
             return;
         }
 
-        int minKeyNum;
-        if(degree%2 == 1)   minKeyNum = degree/2; //odd
-        else                minKeyNum = degree/2 -1;//even
+        fixUnderFlow(problem);
 
-        // check if it is underflow.
-        if(problem.p.size() < minKeyNum){
-            fixUnderFlow(problem);
-        }
-
-        System.out.println("deleteLeaf done!");
+        System.out.println("deleteLeaf done! key : " + key);
     }
 
     private static void fixUnderFlow(Node problem){
+        if(problem == null) {
+            System.out.println("error! problem is null!");
+            return;
+        }
 
         int minKeyNum;
         if(degree%2 == 1)   minKeyNum = degree/2; //odd
@@ -652,37 +656,75 @@ public class Main {
         if(problem.p.size() >= minKeyNum) return;
         else if(problem == root){
             if(problem.p.size() == 0) {
-                root = root.r;
+                root = problem.r;
+                System.out.println("fixUnderFlow for root done!");
             }
             return;
         }
 
         Node parent = problem.parent;
 
+        //check if problem is LEAF
+        boolean leaf = false;
+        if(problem.r == null) leaf = true;
+        for(Node.Pair kv : parent.p){
+            if(kv.child != problem && kv.child.p.get(0).child == null) {
+                leaf = true;
+                break;
+            }
+        }
+
         // if problem is a LEAF node
-        if(problem.p.get(0) == null){
+        if(leaf){
             Node.Pair i = null; //parent pair i
             Node.Pair i_ = null; //parent's left pair i-1
             Node.Pair i__ = null; //parent's right pair i+1
-            if(parent.p.get(parent.p.size()-1).key <= problem.p.get(0).key) {
-                i_ = parent.p.get(parent.p.size()-1);
+
+            if(problem.p.size() > 0) { //degree is over 5
+                if (parent.p.get(parent.p.size() - 1).key <= problem.p.get(0).key) {
+                    i_ = parent.p.get(parent.p.size() - 1);
+                }
+                for (int j = 0; j < parent.p.size(); j++) {
+                    if (problem.p.get(0).key < parent.p.get(j).key) {
+                        i = parent.p.get(j);
+                        if (j - 1 >= 0) i_ = parent.p.get(j - 1);
+                        if (j + 1 < parent.p.size()) i__ = parent.p.get(j + 1);
+                        break;
+                    }
+                }
             }
-            for(int j = 0; j < parent.p.size(); j++){
-                if(problem.p.get(0).key < parent.p.get(j).key){
-                    i = parent.p.get(j);
-                    if(j-1 >= 0) i_ = parent.p.get(j-1);
-                    if(j+1 < parent.p.size()) i__ = parent.p.get(j+1);
-                    break;
+            else{ //degree is 3 or 4
+                if (parent.r.p.size() == 0){ //problem == parent.r
+                    i_ = parent.p.get(parent.p.size() - 1);
+                }
+                for(int j = 0; j < parent.p.size(); j++){
+                    if(parent.p.get(j).child.p.size() == 0){
+                        i = parent.p.get(j);
+                        if (j - 1 >= 0) i_ = parent.p.get(j - 1);
+                        if (j + 1 < parent.p.size()) i__ = parent.p.get(j + 1);
+                        break;
+                    }
                 }
             }
 
-            // BORROW from RIGHT sibling (using only i)
-            if(i != null && problem.r.p.size() > minKeyNum){
-                Node right = problem.r;
-                Node.Pair borrow = new Node.Pair(right.p.get(0));
-                problem.p.add(borrow); problem.m++;
-                i.key = borrow.key; i.value = borrow.value;
-                right.p.remove(0); right.m--;
+            // BORROW from RIGHT sibling (using only i) (leaf ver.)
+            if(i != null){
+
+                Node right;
+                if(i__ != null) right = i__.child;
+                else right = parent.r;
+
+                System.out.println("##### check 26 #####");
+
+                if(right.p.size() > minKeyNum) {
+                    Node.Pair borrow = new Node.Pair(right.p.get(0));
+                    problem.p.add(borrow); problem.m++;
+                    i.key = right.p.get(1).key;
+                    i.value = right.p.get(1).value;
+                    right.p.remove(0); right.m--;
+
+                    System.out.println("##### check 26 #####");
+                }
             }
             // BORROW from LEFT sibling (using i-1)
             else if (i_ != null && i_.child.p.size() > minKeyNum) {
@@ -690,11 +732,14 @@ public class Main {
                 Node left = i_.child;
                 Node.Pair borrow = new Node.Pair(left.p.get(left.p.size()-1));
                 problem.p.add(0, borrow); problem.m++;
-                i_.key = borrow.key; i_.value = borrow.value;
+                i_.key = borrow.key;
+                i_.value = borrow.value;
                 left.p.remove(left.p.size()-1); left.m--;
             }
-            else{
-                //MERGE with LEFT sibling (using i, i-1)
+
+            // if we cannot borrow, MERGE
+            if(problem.p.size() < minKeyNum){
+                // MERGE with LEFT sibling (using i, i-1)
                 if(i_ != null) {
                     Node left = i_.child;
 
@@ -704,7 +749,7 @@ public class Main {
                     left.r = problem.r;
                     if(i!=null) i.child = left;
                     else parent.r = left;
-                    parent.p.remove(i_);
+                    parent.p.remove(i_); parent.m--;
                 }
                 //MERGE with RIGHT sibling (using i, i+1)
                 else{
@@ -730,19 +775,35 @@ public class Main {
             Node.Pair i = null; //parent pair i
             Node.Pair i_ = null; //parent's left pair i-1
             Node.Pair i__ = null; //parent's right pair i+1
-            if(parent.p.get(parent.p.size()-1).key < problem.p.get(0).key) {
-                i_ = parent.p.get(parent.p.size()-1);
+
+            if(problem.p.size() > 0) { // degree is over 5
+                if (parent.p.get(parent.p.size() - 1).key < problem.p.get(0).key) {
+                    i_ = parent.p.get(parent.p.size() - 1);
+                }
+                for (int j = 0; j < parent.p.size(); j++) {
+                    if (problem.p.get(0).key < parent.p.get(j).key) {
+                        i = parent.p.get(j);
+                        if (j - 1 >= 0) i_ = parent.p.get(j - 1);
+                        if (j + 1 < parent.p.size()) i__ = parent.p.get(j + 1);
+                        break;
+                    }
+                }
             }
-            for(int j = 0; j < parent.p.size(); j++){
-                if(problem.p.get(0).key < parent.p.get(j).key){
-                    i = parent.p.get(j);
-                    if(j-1 >= 0) i_ = parent.p.get(j-1);
-                    if(j+1 < parent.p.size()) i__ = parent.p.get(j+1);
-                    break;
+            else{ //degree is 3 or 4
+                if (parent.r.p.size() == 0){
+                    i_ = parent.p.get(parent.p.size() - 1);
+                }
+                for(int j = 0; j < parent.p.size(); j++){
+                    if(parent.p.get(j).child.p.size() == 0){
+                        i = parent.p.get(j);
+                        if (j - 1 >= 0) i_ = parent.p.get(j - 1);
+                        if (j + 1 < parent.p.size()) i__ = parent.p.get(j + 1);
+                        break;
+                    }
                 }
             }
 
-            //BORROW from RIGHT sibling
+            //BORROW from RIGHT sibling (index ver.)
             if(i != null){
                 Node right;
                 if(i__ != null) right = i__.child;
@@ -758,7 +819,7 @@ public class Main {
                     right.p.remove(0);
                 }
             }
-            //BORROW from LEFT sibling
+            //BORROW from LEFT sibling (index ver.)
             else if(i_ != null && i_.child.p.size() > minKeyNum){
                 Node left = i_.child;
                 Node.Pair down = new Node.Pair(i_);
@@ -766,47 +827,96 @@ public class Main {
                 left.r = left.p.get(left.p.size()-1).child;
                 i_.key = left.p.get(left.p.size()-1).key;
                 i_.value = left.p.get(left.p.size()-1).value;
-                left.p.remove(left.p.size()-1);
+                left.p.remove(left.p.size()-1); left.m--;
             }
 
-            if(problem.p.size() >= minKeyNum) return;
+            // if we cannot borrow, MERGE
+            if(problem.p.size() < minKeyNum) {
+                //MERGE with RIGHT sibling (index ver.)
+                if (i != null) {
+                    Node right;
+                    if (i__ != null) right = i__.child;
+                    else right = parent.r;
 
-            //MERGE with RIGHT sibling
-            if(i != null){
-                Node right;
-                if(i__ != null) right = i__.child;
-                else right = parent.r;
+                    Node.Pair down = new Node.Pair(i);
+                    problem.p.add(down); problem.m++;
+                    for (Node.Pair kv : right.p) {
+                        problem.p.add(new Node.Pair(kv)); problem.m++;
+                    }
 
-                Node.Pair down = new Node.Pair(i);
-                problem.p.add(down);
-                for(Node.Pair kv : right.p){
-                    problem.p.add(new Node.Pair(kv));
+                    down.child = problem.r;
+                    problem.r = right.r;
+                    if (i__ != null) i__.child = problem;
+                    else parent.r = problem;
+                    parent.p.remove(i); parent.m--;
+
+                    // set child's parent : problem
+                    problem.r.parent = problem;
+                    for (Node.Pair kv : problem.p) {
+                        kv.child.parent = problem;
+                    }
+
                 }
+                //MERGE with LEFT sibling (index ver.)
+                else if (i_ != null) {
+                    Node left = i_.child;
+                    Node.Pair down = new Node.Pair(i_);
 
-                down.child = problem.r;
-                problem.r = right.r;
-                if(i__ != null) i__.child = problem;
-                else parent.r = problem;
-                parent.p.remove(i);
-            }
-            //MERGE with LEFT sibling
-            else if (i_ != null){
-                Node left = i_.child;
-                Node.Pair down = new Node.Pair(i_);
+                    left.p.add(down);
+                    down.child = left.r;
+                    left.r = problem.r;
+                    for (Node.Pair kv : problem.p) { // is_it_okay...?
+                        left.p.add(new Node.Pair(kv));
+                    }
+                    parent.r = left; // for no i+1
+                    parent.p.remove(i_);
 
-                left.p.add(down);
-                down.child = left.r;
-                left.r = problem.r;
-                for(Node.Pair kv : problem.p){
-                    left.p.add(new Node.Pair(kv));
+                    // set child's parent : problem
+                    left.r.parent = left;
+                    for (Node.Pair kv : left.p) {
+                        kv.child.parent = left;
+                    }
                 }
-                parent.r = left;
-                parent.p.remove(i_);
             }
-            System.out.println("fixUnderFlow for Index is done!");
+                System.out.println("fixUnderFlow for Index is done!");
         }
 
         fixUnderFlow(parent);
+    }
+
+    private static void printAllKeys(){
+        try {
+            File output = new File("../build/output.txt");
+            FileWriter fw = new FileWriter(output);
+
+            // go down to the first key
+            Node print = root;
+            while(print != null){
+                if(print.p.get(0).child == null){
+                    break;
+                }
+                print = print.p.get(0).child;
+            }
+
+            // print all the keys
+            int numOfKey = 0;
+            while(print != null){
+                for(Node.Pair kv : print.p){
+                    ++numOfKey;
+                    fw.write(kv.key + " ");
+                }
+                if(numOfKey % 10 == 0)
+                    fw.write("\n");
+
+                print = print.r;
+            }
+
+            fw.flush();
+            fw.close();
+
+        }catch(IOException e){
+            e.printStackTrace();
+        }
     }
 
 }
