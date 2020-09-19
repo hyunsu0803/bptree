@@ -109,7 +109,6 @@ public class Main {
         }
     }
 
-    // make new index file and print degree
     private static void creation(String indexFileName, int d){
         degree = d;
         try {
@@ -123,7 +122,6 @@ public class Main {
         }
     }
 
-    // read input csv file and insert nodes to tree
     private static void insertion(String indexFileName, String inputFileName){
         readTree(indexFileName);
 
@@ -630,6 +628,7 @@ public class Main {
         fixUnderFlow(problem);
 
         System.out.println("deleteLeaf done! key : " + key);
+        System.out.println();
     }
 
     private static void fixUnderFlow(Node problem){
@@ -647,7 +646,7 @@ public class Main {
         else if(problem == root){
             if(problem.p.size() == 0) {
                 root = problem.r;
-                System.out.println("fixUnderFlow for root done!");
+                System.out.println("ROOT fixed!");
             }
             return;
         }
@@ -700,7 +699,7 @@ public class Main {
                 }
             }
 
-            // BORROW from RIGHT sibling (using only i) (leaf ver.)
+            // BORROW from RIGHT sibling (leaf ver.)
             if(i != null){
 
                 Node right;
@@ -714,10 +713,10 @@ public class Main {
                     i.value = right.p.get(1).value;
                     right.p.remove(0); right.m--;
 
-                    System.out.println("##### leaf right sibling borrow #####");
+                    System.out.println("##### LEAF : BORROW from RIGHT #####");
                 }
             }
-            // BORROW from LEFT sibling (using i-1)
+            // BORROW from LEFT sibling (leaf ver.)
             else if (i_ != null && i_.child.p.size() > minKeyNum) {
                 // i == null? no no
                 Node left = i_.child;
@@ -727,7 +726,7 @@ public class Main {
                 i_.value = borrow.value;
                 left.p.remove(left.p.size()-1); left.m--;
 
-                System.out.println("##### leaf left sibling borrow #####");
+                System.out.println("##### LEAF : BORROW from LEFT #####");
             }
 
             // if we cannot borrow, MERGE
@@ -744,7 +743,7 @@ public class Main {
                     else parent.r = left;
                     parent.p.remove(i_); parent.m--;
 
-                    System.out.println("##### leaf left sibling merge #####");
+                    System.out.println("##### LEAF : MERGE with LEFT #####");
                 }
                 //MERGE with RIGHT sibling (using i, i+1)
                 else{
@@ -761,11 +760,9 @@ public class Main {
                     else parent.r = problem;
                     parent.p.remove(i);
 
-                    System.out.println("##### leaf right sibling merge #####");
+                    System.out.println("##### LEAF : MERGE with RIGHT #####");
                 }
             }
-
-            System.out.println("fixUnderFlow for Leaf is done!");
         }
         // if problem is a INDEX node
         else{
@@ -815,7 +812,7 @@ public class Main {
                     i.value = right.p.get(0).value;
                     right.p.remove(0);
 
-                    System.out.println("##### index right sibling borrow #####");
+                    System.out.println("##### INDEX : BORROW from RIGHT #####");
                 }
             }
             //BORROW from LEFT sibling (index ver.)
@@ -828,7 +825,7 @@ public class Main {
                 i_.value = left.p.get(left.p.size()-1).value;
                 left.p.remove(left.p.size()-1); left.m--;
 
-                System.out.println("##### index left sibling borrow #####");
+                System.out.println("##### INDEX : BORROW from LEFT #####");
             }
 
             // if we cannot borrow, MERGE
@@ -857,7 +854,7 @@ public class Main {
                         kv.child.parent = problem;
                     }
 
-                    System.out.println("##### index right sibling merge #####");
+                    System.out.println("##### INDEX : MERGE with RIGHT #####");
                 }
                 //MERGE with LEFT sibling (index ver.)
                 else if (i_ != null) {
@@ -879,10 +876,9 @@ public class Main {
                         kv.child.parent = left;
                     }
 
-                    System.out.println("##### index left sibling merge #####");
+                    System.out.println("##### INDEX : MERGE with LEFT #####");
                 }
             }
-            System.out.println("fixUnderFlow for Index is done!");
         }
 
         fixUnderFlow(parent);
@@ -890,7 +886,7 @@ public class Main {
 
     private static void printAllKeys(){
         try {
-            File output = new File("../build/output.dat");
+            File output = new File("../build/allKeys.dat");
             FileWriter fw = new FileWriter(output);
 
             // go down to the first key
