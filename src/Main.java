@@ -55,11 +55,7 @@ public class Main {
     private static String leaves; // temporary Buffer for writeTree
 
     public static void main(String[] args) {
-/*
-        Scanner sc = new Scanner(System.in);
-        String command = sc.nextLine();
-        args = command.split(" ");
-*/
+
         if(args == null){
             System.out.println("No argument!");
             return;
@@ -156,7 +152,6 @@ public class Main {
         if(root == null){
             root = new Node();
             root.p.add(new Node.Pair(key, value)); root.m++;
-            System.out.println("addLeaf done! first insertion! key : " + key);
             return;
         }
 
@@ -197,7 +192,6 @@ public class Main {
 
         /* Did LEAF node overflow ? */
         if(P.p.size() < degree) { // if not,
-            System.out.println("addLeaf done! key : " + key);
             return;
         }
         // if overflowed, split it
@@ -226,7 +220,6 @@ public class Main {
             left.parent = root;
             right.parent = root;
 
-            System.out.println("addLeaf done! leaf root overflowed! key : " + key);
             return;
         }
         /* if this LEAF is NOT a root */
@@ -254,7 +247,6 @@ public class Main {
         }
         // done.
         if(P.parent.p.size() < degree) {
-            System.out.println("addLeaf done! leaf node overflowed! key : " + key);
             return;
         }
 
@@ -262,7 +254,6 @@ public class Main {
         P = P.parent;
         while(true){
             if(P.p.size() < degree) {
-                System.out.println("addLeaf done! index node overflowed! key : " + key);
                 return;
             }
 
@@ -297,7 +288,6 @@ public class Main {
                 left.parent = root;
                 right.parent = root;
 
-                System.out.println("addLeaf done! index root overflowed! key : " + key);
                 return;
             }
             /* if INDEX node is NOT a root */
@@ -430,7 +420,6 @@ public class Main {
             System.out.println("writeTree done!");
 
             printAllKeys();
-            System.out.println("printAllKeys done!");
 
         }catch(IOException e){
             e.printStackTrace();
@@ -893,7 +882,7 @@ public class Main {
                     System.out.println("##### index left sibling merge #####");
                 }
             }
-                System.out.println("fixUnderFlow for Index is done!");
+            System.out.println("fixUnderFlow for Index is done!");
         }
 
         fixUnderFlow(parent);
@@ -928,7 +917,7 @@ public class Main {
 
             fw.flush();
             fw.close();
-
+            System.out.println("printAllKeys done!");
         }catch(IOException e){
             e.printStackTrace();
         }
