@@ -148,9 +148,6 @@ public class Main {
 
         System.out.println("insertion done!");
 
-        printAllKeys();
-        System.out.println("printAllKeys done!");
-
         writeTree(indexFileName);
     }
 
@@ -209,14 +206,14 @@ public class Main {
         Node.Pair up = new Node.Pair(P.p.get(degree/2));
 
         for(int i = degree/2; i < degree; i++){
-            right.p.add(P.p.get(i)); right.m++;
+            right.p.add(new Node.Pair(left.p.get(i))); right.m++;
         }
         for(int i = degree-1; i >= degree/2; i--){
             left.p.remove(i); left.m--;
         }
         up.child = left;
-        left.r = right;
         right.r = P.r;
+        left.r = right;
 
         /* if overflowed LEAF is a root */
         if(P == root){
@@ -275,7 +272,7 @@ public class Main {
             up = new Node.Pair(P.p.get(degree/2));
 
             for(int i = degree/2 + 1; i < degree; i++){
-                right.p.add(P.p.get(i)); right.m++;
+                right.p.add(new Node.Pair(left.p.get(i))); right.m++;
             }
             for(int i = degree-1; i >= degree/2; i--){
                 left.p.remove(i); left.m--;
@@ -431,6 +428,10 @@ public class Main {
             bw.close();
 
             System.out.println("writeTree done!");
+
+            printAllKeys();
+            System.out.println("printAllKeys done!");
+
         }catch(IOException e){
             e.printStackTrace();
         }
@@ -444,7 +445,7 @@ public class Main {
             for (Node.Pair i : node.p) {
                 bw.write(" " + i.key + " " + i.value);
             }
-            bw.write(" " + node.m + "\n");
+            bw.write("\n");
 
             /* if this node is LEAF */
             if(node.p.get(0).child == null) {
@@ -666,9 +667,12 @@ public class Main {
 
         //check if problem is LEAF
         boolean leaf = false;
-        if(problem.r == null) leaf = true;
+        if(problem.r == null)
+            leaf = true; //problem has no child
+        if(parent.r.p.size() != 0 && parent.r.p.get(0).child == null)
+            leaf = true; // sibling has no child
         for(Node.Pair kv : parent.p){
-            if(kv.child != problem && kv.child.p.get(0).child == null) {
+            if(kv.child.p.size() != 0 && kv.child.p.get(0).child == null) {
                 leaf = true;
                 break;
             }
@@ -714,8 +718,6 @@ public class Main {
                 if(i__ != null) right = i__.child;
                 else right = parent.r;
 
-                System.out.println("##### check 26 #####");
-
                 if(right.p.size() > minKeyNum) {
                     Node.Pair borrow = new Node.Pair(right.p.get(0));
                     problem.p.add(borrow); problem.m++;
@@ -723,7 +725,7 @@ public class Main {
                     i.value = right.p.get(1).value;
                     right.p.remove(0); right.m--;
 
-                    System.out.println("##### check 26 #####");
+                    System.out.println("##### leaf right sibling borrow #####");
                 }
             }
             // BORROW from LEFT sibling (using i-1)
@@ -735,6 +737,8 @@ public class Main {
                 i_.key = borrow.key;
                 i_.value = borrow.value;
                 left.p.remove(left.p.size()-1); left.m--;
+
+                System.out.println("##### leaf left sibling borrow #####");
             }
 
             // if we cannot borrow, MERGE
@@ -750,6 +754,8 @@ public class Main {
                     if(i!=null) i.child = left;
                     else parent.r = left;
                     parent.p.remove(i_); parent.m--;
+
+                    System.out.println("##### leaf left sibling merge #####");
                 }
                 //MERGE with RIGHT sibling (using i, i+1)
                 else{
@@ -765,6 +771,8 @@ public class Main {
                     if(i__ != null) i__.child = problem;
                     else parent.r = problem;
                     parent.p.remove(i);
+
+                    System.out.println("##### leaf right sibling merge #####");
                 }
             }
 
@@ -817,6 +825,8 @@ public class Main {
                     i.key = right.p.get(0).key;
                     i.value = right.p.get(0).value;
                     right.p.remove(0);
+
+                    System.out.println("##### index right sibling borrow #####");
                 }
             }
             //BORROW from LEFT sibling (index ver.)
@@ -828,6 +838,8 @@ public class Main {
                 i_.key = left.p.get(left.p.size()-1).key;
                 i_.value = left.p.get(left.p.size()-1).value;
                 left.p.remove(left.p.size()-1); left.m--;
+
+                System.out.println("##### index left sibling borrow #####");
             }
 
             // if we cannot borrow, MERGE
@@ -856,6 +868,7 @@ public class Main {
                         kv.child.parent = problem;
                     }
 
+                    System.out.println("##### index right sibling merge #####");
                 }
                 //MERGE with LEFT sibling (index ver.)
                 else if (i_ != null) {
@@ -876,6 +889,8 @@ public class Main {
                     for (Node.Pair kv : left.p) {
                         kv.child.parent = left;
                     }
+
+                    System.out.println("##### index left sibling merge #####");
                 }
             }
                 System.out.println("fixUnderFlow for Index is done!");
@@ -886,7 +901,7 @@ public class Main {
 
     private static void printAllKeys(){
         try {
-            File output = new File("../build/output.txt");
+            File output = new File("../build/output.dat");
             FileWriter fw = new FileWriter(output);
 
             // go down to the first key
@@ -904,10 +919,10 @@ public class Main {
                 for(Node.Pair kv : print.p){
                     ++numOfKey;
                     fw.write(kv.key + " ");
-                }
-                if(numOfKey % 10 == 0)
-                    fw.write("\n");
 
+                    if(numOfKey % 10 == 0)
+                        fw.write("\n");
+                }
                 print = print.r;
             }
 
