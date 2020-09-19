@@ -587,12 +587,18 @@ public class Main {
 
         // go down to LEAF
         Node problem = root;
+        if(root == null){
+            System.out.println("root is null! deleteLeaf failed!");
+            return;
+        }
         while(true){
+            System.out.println("Going down to LEAF; now : " + problem.p.get(0).key);
+
             /* check if it's leaf node*/
             if(problem.p.get(0).child == null)
                 break;
             else{
-                if((problem.p.get(problem.p.size()-1).key) < key){
+                if((problem.p.get(problem.p.size()-1).key) <= key){
                     problem = problem.r;
                     continue;
                 }
@@ -605,6 +611,7 @@ public class Main {
                         if(i+1 < problem.p.size())
                             problem = problem.p.get(i+1).child;
                         else problem = problem.r;
+                        break;
                     }
                 }
             }
@@ -621,7 +628,7 @@ public class Main {
         }
         // else deletion end
         if(!isThereKey) {
-            System.out.println("No such key! Deletion failed!");
+            System.out.println("No such key! Deletion failed!\n");
             return;
         }
 
@@ -637,9 +644,7 @@ public class Main {
             return;
         }
 
-        int minKeyNum;
-        if(degree%2 == 1)   minKeyNum = degree/2; //odd
-        else                minKeyNum = degree/2 -1;//even
+        int minKeyNum = (degree - 1) / 2;
 
         // check if it is underflow
         if(problem.p.size() >= minKeyNum) return;
@@ -699,8 +704,20 @@ public class Main {
                 }
             }
 
+            // BORROW from LEFT sibling (leaf ver.)
+            if (i_ != null && i_.child.p.size() > minKeyNum) {
+                // i == null? no no
+                Node left = i_.child;
+                Node.Pair borrow = new Node.Pair(left.p.get(left.p.size()-1));
+                problem.p.add(0, borrow); problem.m++;
+                i_.key = borrow.key;
+                i_.value = borrow.value;
+                left.p.remove(left.p.size()-1); left.m--;
+
+                System.out.println("##### LEAF : BORROW from LEFT #####");
+            }
             // BORROW from RIGHT sibling (leaf ver.)
-            if(i != null){
+            else if(i != null){
 
                 Node right;
                 if(i__ != null) right = i__.child;
@@ -715,18 +732,6 @@ public class Main {
 
                     System.out.println("##### LEAF : BORROW from RIGHT #####");
                 }
-            }
-            // BORROW from LEFT sibling (leaf ver.)
-            else if (i_ != null && i_.child.p.size() > minKeyNum) {
-                // i == null? no no
-                Node left = i_.child;
-                Node.Pair borrow = new Node.Pair(left.p.get(left.p.size()-1));
-                problem.p.add(0, borrow); problem.m++;
-                i_.key = borrow.key;
-                i_.value = borrow.value;
-                left.p.remove(left.p.size()-1); left.m--;
-
-                System.out.println("##### LEAF : BORROW from LEFT #####");
             }
 
             // if we cannot borrow, MERGE
@@ -797,8 +802,21 @@ public class Main {
                 }
             }
 
+            //BORROW from LEFT sibling (index ver.)
+            if(i_ != null && i_.child.p.size() > minKeyNum){
+                Node left = i_.child;
+                Node.Pair down = new Node.Pair(i_);
+                down.child = left.r;
+                problem.p.add(0,down);
+                left.r = left.p.get(left.p.size()-1).child;
+                i_.key = left.p.get(left.p.size()-1).key;
+                i_.value = left.p.get(left.p.size()-1).value;
+                left.p.remove(left.p.size()-1); left.m--;
+
+                System.out.println("##### INDEX : BORROW from LEFT #####");
+            }
             //BORROW from RIGHT sibling (index ver.)
-            if(i != null){
+            else if(i != null){
                 Node right;
                 if(i__ != null) right = i__.child;
                 else right = parent.r;
@@ -814,18 +832,6 @@ public class Main {
 
                     System.out.println("##### INDEX : BORROW from RIGHT #####");
                 }
-            }
-            //BORROW from LEFT sibling (index ver.)
-            else if(i_ != null && i_.child.p.size() > minKeyNum){
-                Node left = i_.child;
-                Node.Pair down = new Node.Pair(i_);
-                down.child = left.r;
-                left.r = left.p.get(left.p.size()-1).child;
-                i_.key = left.p.get(left.p.size()-1).key;
-                i_.value = left.p.get(left.p.size()-1).value;
-                left.p.remove(left.p.size()-1); left.m--;
-
-                System.out.println("##### INDEX : BORROW from LEFT #####");
             }
 
             // if we cannot borrow, MERGE
