@@ -112,7 +112,7 @@ public class Main {
     private static void creation(String indexFileName, int d){
         degree = d;
         try {
-            File indexFile = new File("../build/" + indexFileName);
+            File indexFile = new File("./" + indexFileName);
             FileWriter fw = new FileWriter(indexFile);
             fw.write("$ " + degree + "\n");
             fw.flush();
@@ -126,7 +126,7 @@ public class Main {
         readTree(indexFileName);
 
         try {
-            File inputFile = new File("../build/" + inputFileName);
+            File inputFile = new File("./" + inputFileName);
             FileReader fr = new FileReader(inputFile);
             BufferedReader br = new BufferedReader(fr);
 
@@ -138,11 +138,9 @@ public class Main {
 
             br.close();
             fr.close();
-        }catch(IOException e){
+        }catch(IOException e) {
             e.printStackTrace();
         }
-
-        System.out.println("insertion done!");
 
         writeTree(indexFileName);
     }
@@ -184,6 +182,8 @@ public class Main {
         if((P.p.get(P.p.size()-1).key) < key)
             P.p.add(new Node.Pair(key, value)); P.m++;
         for(int i = 0; i<P.p.size(); i++){
+            if(key == P.p.get(i).key) return;
+
             if(key < P.p.get(i).key){
                 P.p.add(i, new Node.Pair(key, value)); P.m++;
                 break;
@@ -322,7 +322,7 @@ public class Main {
 
     private static void readTree(String indexFileName){
         try {
-            File indexFile = new File("../build/" + indexFileName);
+            File indexFile = new File("./" + indexFileName);
             FileReader fr = new FileReader(indexFile);
             BufferedReader br = new BufferedReader(fr);
 
@@ -340,7 +340,6 @@ public class Main {
 
                     case "$": /* get degree */
                         degree = Integer.parseInt(nodeInfo[1]);
-                        System.out.println("degree : " + degree);
                         break;
 
 
@@ -395,8 +394,6 @@ public class Main {
                 root = tempTree.get(1);
             else root = null;
 
-            System.out.println("readTree done!");
-
             br.close();
             fr.close();
         } catch(IOException e){
@@ -406,7 +403,7 @@ public class Main {
 
     private static void writeTree(String indexFileName){
         try {
-            File indexFile = new File("../build/" + indexFileName);
+            File indexFile = new File("./" + indexFileName);
             FileWriter fw = new FileWriter(indexFile);
             BufferedWriter bw = new BufferedWriter(fw);
 
@@ -421,9 +418,6 @@ public class Main {
             bw.close();
             fw.close();
 
-            System.out.println("writeTree done!");
-
-            printAllKeys();
             count = 0;
         }catch(IOException e){
             e.printStackTrace();
@@ -473,12 +467,10 @@ public class Main {
                 for(Node.Pair p : N.p){
                     if(p.key == key){
                         System.out.println(p.value);
-                        System.out.println("singleKeySearch done!");
                         return;
                     }
                 }
                 System.out.println("NOT FOUND");
-                System.out.println("singleKeySearch done!");
                 return;
             }
 
@@ -565,28 +557,26 @@ public class Main {
             System.out.println("NOT FOUND");
         }
 
-        System.out.println("rangedSearch done!");
     }
 
     private static void deletion(String indexFileName, String deleteFileName){
 
-
         try {
-            File deleteFile = new File("../build/" + deleteFileName);
+            readTree(indexFileName);
+
+            File deleteFile = new File("./" + deleteFileName);
             FileReader fr = new FileReader(deleteFile);
             BufferedReader br = new BufferedReader(fr);
 
             String key;
             while((key = br.readLine()) != null){
-                readTree(indexFileName);
                 deleteLeaf(Integer.parseInt(key));
-                writeTree(indexFileName);
             }
-            System.out.println("deletion done!");
 
             br.close();
             fr.close();
 
+            writeTree(indexFileName);
 
         }catch(IOException e){
             e.printStackTrace();
@@ -602,7 +592,6 @@ public class Main {
             return;
         }
         while(true){
-            System.out.println("Going down to LEAF; now : " + problem.p.get(0).key);
 
             /* check if it's leaf node*/
             if(problem.p.get(0).child == null)
@@ -626,7 +615,6 @@ public class Main {
                 }
             }
         }
-
         // if there is key, remove it.
         boolean isThereKey = false;
         for(Node.Pair kv : problem.p){
@@ -643,9 +631,6 @@ public class Main {
         }
 
         fixUnderFlow(problem);
-
-        System.out.println("deleteLeaf done! key : " + key);
-        System.out.println();
     }
 
     private static void fixUnderFlow(Node problem){
@@ -661,7 +646,6 @@ public class Main {
         else if(problem == root){
             if(problem.p.size() == 0) {
                 root = problem.r;
-                System.out.println("ROOT fixed!");
             }
             return;
         }
@@ -724,7 +708,6 @@ public class Main {
                 i_.value = borrow.value;
                 left.p.remove(left.p.size()-1); left.m--;
 
-                System.out.println("##### LEAF : BORROW from LEFT #####");
             }
             // BORROW from RIGHT sibling (leaf ver.)
             else if(i != null){
@@ -739,8 +722,6 @@ public class Main {
                     i.key = right.p.get(1).key;
                     i.value = right.p.get(1).value;
                     right.p.remove(0); right.m--;
-
-                    System.out.println("##### LEAF : BORROW from RIGHT #####");
                 }
             }
 
@@ -758,7 +739,6 @@ public class Main {
                     else parent.r = left;
                     parent.p.remove(i_); parent.m--;
 
-                    System.out.println("##### LEAF : MERGE with LEFT #####");
                 }
                 //MERGE with RIGHT sibling (LEAF ver.)
                 else{
@@ -775,7 +755,6 @@ public class Main {
                     else parent.r = problem;
                     parent.p.remove(i);
 
-                    System.out.println("##### LEAF : MERGE with RIGHT #####");
                 }
             }
         }
@@ -822,8 +801,6 @@ public class Main {
                 i_.key = left.p.get(left.p.size()-1).key;
                 i_.value = left.p.get(left.p.size()-1).value;
                 left.p.remove(left.p.size()-1); left.m--;
-
-                System.out.println("##### INDEX : BORROW from LEFT #####");
             }
             //BORROW from RIGHT sibling (index ver.)
             else if(i != null){
@@ -839,8 +816,6 @@ public class Main {
                     i.key = right.p.get(0).key;
                     i.value = right.p.get(0).value;
                     right.p.remove(0);
-
-                    System.out.println("##### INDEX : BORROW from RIGHT #####");
                 }
             }
 
@@ -870,7 +845,6 @@ public class Main {
                         kv.child.parent = problem;
                     }
 
-                    System.out.println("##### INDEX : MERGE with RIGHT #####");
                 }
                 //MERGE with LEFT sibling (index ver.)
                 else if (i_ != null) {
@@ -891,48 +865,11 @@ public class Main {
                     for (Node.Pair kv : left.p) {
                         kv.child.parent = left;
                     }
-
-                    System.out.println("##### INDEX : MERGE with LEFT #####");
                 }
             }
         }
 
         fixUnderFlow(parent);
-    }
-
-    private static void printAllKeys(){
-        try {
-            File output = new File("../build/allKeys.dat");
-            FileWriter fw = new FileWriter(output);
-
-            // go down to the first key
-            Node print = root;
-            while(print != null){
-                if(print.p.get(0).child == null){
-                    break;
-                }
-                print = print.p.get(0).child;
-            }
-
-            // print all the keys
-            int numOfKey = 0;
-            while(print != null){
-                for(Node.Pair kv : print.p){
-                    ++numOfKey;
-                    fw.write(kv.key + " ");
-
-                    if(numOfKey % 10 == 0)
-                        fw.write("\n");
-                }
-                print = print.r;
-            }
-
-            fw.flush();
-            fw.close();
-            System.out.println("printAllKeys done!");
-        }catch(IOException e){
-            e.printStackTrace();
-        }
     }
 
 }
