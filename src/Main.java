@@ -136,6 +136,8 @@ public class Main {
                 addLeaf(Integer.parseInt(keyNvalue[0]), Integer.parseInt(keyNvalue[1]));
             }
 
+            br.close();
+            fr.close();
         }catch(IOException e){
             e.printStackTrace();
         }
@@ -394,6 +396,9 @@ public class Main {
             else root = null;
 
             System.out.println("readTree done!");
+
+            br.close();
+            fr.close();
         } catch(IOException e){
             e.printStackTrace();
         }
@@ -414,11 +419,12 @@ public class Main {
 
             bw.flush();
             bw.close();
+            fw.close();
 
             System.out.println("writeTree done!");
 
             printAllKeys();
-
+            count = 0;
         }catch(IOException e){
             e.printStackTrace();
         }
@@ -563,7 +569,7 @@ public class Main {
     }
 
     private static void deletion(String indexFileName, String deleteFileName){
-        readTree(indexFileName);
+
 
         try {
             File deleteFile = new File("../build/" + deleteFileName);
@@ -572,15 +578,19 @@ public class Main {
 
             String key;
             while((key = br.readLine()) != null){
+                readTree(indexFileName);
                 deleteLeaf(Integer.parseInt(key));
+                writeTree(indexFileName);
             }
             System.out.println("deletion done!");
+
+            br.close();
+            fr.close();
+
 
         }catch(IOException e){
             e.printStackTrace();
         }
-
-        writeTree(indexFileName);
     }
 
     private static void deleteLeaf(int key){
@@ -736,7 +746,7 @@ public class Main {
 
             // if we cannot borrow, MERGE
             if(problem.p.size() < minKeyNum){
-                // MERGE with LEFT sibling (using i, i-1)
+                // MERGE with LEFT sibling (leaf ver.)
                 if(i_ != null) {
                     Node left = i_.child;
 
@@ -750,7 +760,7 @@ public class Main {
 
                     System.out.println("##### LEAF : MERGE with LEFT #####");
                 }
-                //MERGE with RIGHT sibling (using i, i+1)
+                //MERGE with RIGHT sibling (LEAF ver.)
                 else{
                     Node right;
                     if(i__ != null) right = i__.child;
